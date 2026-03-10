@@ -591,7 +591,7 @@ impl Render for LauncherUI {
 
         h_resizable("container")
             .with_state(&self.sidebar_state)
-            .child(resizable_panel().size(px(self.default_sidebar_width)).size_range(px(130.)..px(200.)).child(sidebar))
+            .child(resizable_panel().size(px(self.default_sidebar_width)).size_range(px(150.)..px(225.)).child(sidebar))
             .child(self.page.clone().render(&self.data, window, cx).into_any_element())
     }
 }
