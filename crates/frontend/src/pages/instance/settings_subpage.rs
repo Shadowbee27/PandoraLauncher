@@ -937,8 +937,8 @@ impl Render for InstanceSettingsSubpage {
             .gap_4()
             .size_full()
             .child(crate::labelled(
-                "Instance Folder",
-               self.instance_root_label.button("relocate").on_click({
+                "Instance Folder (click to relocate)",
+                self.instance_root_label.button("relocate").on_click({
                     let instance = self.instance.clone();
                     let backend_handle = self.backend_handle.clone();
                     move |_: &ClickEvent, _, cx| {
