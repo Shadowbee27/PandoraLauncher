@@ -11,7 +11,7 @@ use rustc_hash::FxHashMap;
 use schema::minecraft_profile::{SkinState, SkinVariant};
 use uuid::Uuid;
 use crate::{
-    component::player_model_widget::PlayerModelWidget, data_asset_loader::DataAssetLoader, entity::{DataEntities, account::AccountExt}, icon::PandoraIcon, interface_config::InterfaceConfig, pages::page::Page, png_render_cache::ImageTransformation, ts
+    component::{player_model_widget::PlayerModelWidget, shrinking_text::ShrinkingText}, data_asset_loader::DataAssetLoader, entity::{DataEntities, account::AccountExt}, icon::PandoraIcon, interface_config::InterfaceConfig, pages::page::Page, png_render_cache::ImageTransformation, ts
 };
 
 pub struct SkinsPage {
@@ -336,7 +336,9 @@ impl Render for SkinsPage {
                             };
                             let button = v_flex()
                                 .gap_1()
+                                .size(px(144.0))
                                 .min_size(px(144.0))
+                                .max_size(px(144.0))
                                 .text_base()
                                 .id(("select-cape", i))
                                 .rounded(radius)
@@ -356,7 +358,7 @@ impl Render for SkinsPage {
                                 .when(active, |this| {
                                     this.child(Icon::new(PandoraIcon::Flag).absolute().right(padding).bottom(padding))
                                 })
-                                .child(SharedString::new(cape.alias.clone()))
+                                .child(ShrinkingText::new("Minecraft Experience".into()))
                                 .on_click({
                                     let cape_url = cape.url.clone();
                                     let uuid = cape.id;
