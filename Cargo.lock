@@ -636,7 +636,6 @@ dependencies = [
  "enum-map",
  "enumset",
  "flate2",
- "fs_extra",
  "futures",
  "hex",
  "image",

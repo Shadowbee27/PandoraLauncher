@@ -440,13 +440,11 @@ fn import_instances_from_atlauncher(backend: &BackendState, import_job: &ImportF
         _ = std::fs::create_dir_all(&to_import.pandora_path);
         let target_dot_minecraft = to_import.pandora_path.join(".minecraft");
 
-        let copy_options = fs_extra::dir::CopyOptions::default().copy_inside(true);
-        _ = fs_extra::dir::copy_with_progress(to_import.folder, &target_dot_minecraft, &copy_options, |state| {
-            tracker.set_total(state.total_bytes as usize);
-            tracker.set_count(state.copied_bytes as usize);
+        _ = std::fs::create_dir_all(&target_dot_minecraft);
+        _ = crate::copy_content_recursive(&to_import.folder, &target_dot_minecraft, false, &|copied, total| {
+            tracker.set_total(total as usize);
+            tracker.set_count(copied as usize);
             tracker.notify();
-
-            fs_extra::dir::TransitProcessResult::ContinueOrAbort
         });
 
         // remove old configuration, rename icon path.
@@ -464,7 +462,7 @@ fn import_instances_from_atlauncher(backend: &BackendState, import_job: &ImportF
             _ = std::fs::create_dir(&resourcepacks_path);
 
             for mod_file in disabled_mods_folder{
-                let Ok(entry) = mod_file else{
+                let Ok(entry) = mod_file else {
                     continue;
                 };
 

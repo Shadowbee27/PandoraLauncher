@@ -198,7 +198,7 @@ impl FolderChanges {
     }
 }
 
-pub fn copy_content_recursive(from: &Path, to: &Path) -> std::io::Result<()> {
+pub fn copy_content_recursive(from: &Path, to: &Path, strict: bool, progress: &dyn Fn(u64, u64)) -> std::io::Result<()> {
     let from = from.canonicalize()?;
     if !from.is_dir() {
         return Err(ErrorKind::NotADirectory.into());
@@ -262,6 +262,7 @@ pub fn copy_content_recursive(from: &Path, to: &Path) -> std::io::Result<()> {
             }
         }
     }
+    (progress)(0, total_bytes);
 
     for directory in directories {
         _ = std::fs::create_dir(to.join(directory));
@@ -269,31 +270,45 @@ pub fn copy_content_recursive(from: &Path, to: &Path) -> std::io::Result<()> {
     let mut copied_bytes = 0;
     for (relative, copy_from) in files {
         let dest = to.join(relative);
-        copied_bytes += std::fs::copy(copy_from, dest)?;
+        match std::fs::copy(copy_from, dest) {
+            Ok(bytes) => copied_bytes += bytes,
+            Err(err) => if strict {
+                return Err(err);
+            },
+        }
+        (progress)(copied_bytes, total_bytes);
     }
-    if copied_bytes != total_bytes {
+    if strict && copied_bytes != total_bytes {
         return Err(Error::new(ErrorKind::Other,
             format!("Expected copy size did not match. Expected to copy {total_bytes} bytes, copied {copied_bytes} instead")));
     }
     for (relative, internal) in internal_symlinks {
         let dest = to.join(relative);
         let target = to.join(internal);
-        symlink_dir_or_file(&target, &dest)?;
+        if let Err(err) = symlink_dir_or_file(&target, &dest) && strict {
+            return Err(err);
+        }
     }
     for (relative, target) in external_symlinks {
         let dest = to.join(relative);
-        symlink_dir_or_file(&target, &dest)?;
+        if let Err(err) = symlink_dir_or_file(&target, &dest) && strict {
+            return Err(err);
+        }
     }
     #[cfg(windows)]
     for (relative, internal) in internal_junctions {
         let dest = to.join(relative);
         let target = to.join(internal);
-        junction::create(&target, &dest)?;
+        if let Err(err) = junction::create(&target, &dest) && strict {
+            return Err(err);
+        }
     }
     #[cfg(windows)]
     for (relative, target) in external_junctions {
         let dest = to.join(relative);
-        junction::create(&target, &dest)?;
+        if let Err(err) = junction::create(&target, &dest) && strict {
+            return Err(err);
+        }
     }
     Ok(())
 }
@@ -335,7 +350,7 @@ pub fn rename_with_fallback_across_devices(from: &Path, to: &Path) -> std::io::R
                 _ = std::fs::remove_file(from);
             } else if from.is_dir() {
                 std::fs::create_dir(to)?;
-                if let Err(err) = copy_content_recursive(from, to) {
+                if let Err(err) = copy_content_recursive(from, to, true, &|_, _| {}) {
                     _ = std::fs::remove_dir_all(to);
                     return Err(err);
                 } else {

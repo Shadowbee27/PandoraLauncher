@@ -456,20 +456,19 @@ fn import_instances_from_multimc(backend: &BackendState, import_job: &ImportFrom
         let mmc_dot_minecraft = to_import.folder.join(".minecraft");
         let mmc_minecraft = to_import.folder.join("minecraft");
         let target_dot_minecraft = to_import.pandora_path.join(".minecraft");
-        let copy_options = fs_extra::dir::CopyOptions::default().copy_inside(true);
         if mmc_minecraft.exists() {
-            _ = fs_extra::dir::copy_with_progress(mmc_minecraft, target_dot_minecraft, &copy_options, |state| {
-                tracker.set_total(state.total_bytes as usize);
-                tracker.set_count(state.copied_bytes as usize);
+            _ = std::fs::create_dir_all(&target_dot_minecraft);
+            _ = crate::copy_content_recursive(&mmc_minecraft, &target_dot_minecraft, false, &|copied, total| {
+                tracker.set_total(total as usize);
+                tracker.set_count(copied as usize);
                 tracker.notify();
-                fs_extra::dir::TransitProcessResult::ContinueOrAbort
             });
         } else if mmc_dot_minecraft.exists() {
-            _ = fs_extra::dir::copy_with_progress(mmc_dot_minecraft, target_dot_minecraft, &copy_options, |state| {
-                tracker.set_total(state.total_bytes as usize);
-                tracker.set_count(state.copied_bytes as usize);
+            _ = std::fs::create_dir_all(&target_dot_minecraft);
+            _ = crate::copy_content_recursive(&mmc_dot_minecraft, &target_dot_minecraft, false, &|copied, total| {
+                tracker.set_total(total as usize);
+                tracker.set_count(copied as usize);
                 tracker.notify();
-                fs_extra::dir::TransitProcessResult::ContinueOrAbort
             });
         }
 
