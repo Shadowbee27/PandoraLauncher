@@ -50,6 +50,7 @@ impl PandoraProcess {
         Self {
             process_handle,
             terminate_state: ProcessTerminateState::Running,
+            exit_status: None,
         }
     }
 

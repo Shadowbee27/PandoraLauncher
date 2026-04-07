@@ -32,6 +32,7 @@ impl Display for PandoraExitStatus {
     }
 }
 
+#[cfg(unix)]
 impl Debug for PandoraExitStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut debug = f.debug_struct("PandoraExitStatus");
