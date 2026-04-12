@@ -335,6 +335,7 @@ fn move_new_exe_into(old_exe_path: PathBuf, new_exe_path: PathBuf, new_exe_data:
                     command.push("'");
                 }
 
+                // todo: replace runas with workspace command crate
                 if cfg!(target_os = "linux") {
                     log::info!("Running with pkexec: {}", command.to_string_lossy());
                     std::process::Command::new("pkexec").arg("sh").arg("-c").arg(command).status()

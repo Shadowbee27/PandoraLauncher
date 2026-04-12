@@ -4,7 +4,6 @@ version = "0.1.0"
 edition.workspace = true
 
 [dependencies]
-backtrace.workspace = true
 chrono.workspace = true
 ftree.workspace = true
 gpui.workspace = true
@@ -24,13 +23,11 @@ once_cell.workspace = true
 ustr.workspace = true
 indexmap.workspace = true
 heapless.workspace = true
-slab.workspace = true
 intrusive-collections.workspace = true
 atomic-time.workspace = true
 reqwest_client.workspace = true
 uuid.workspace = true
 enumset.workspace = true
-hex.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 rand.workspace = true
