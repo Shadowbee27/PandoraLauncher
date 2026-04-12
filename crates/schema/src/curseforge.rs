@@ -210,6 +210,30 @@ impl CurseforgeModLoaderType {
             _ => Self::Any,
         }
     }
+
+    pub fn from_id(id: &str) -> Option<Self> {
+        if id.starts_with("forge-") {
+            Some(Self::Forge)
+        } else if id.starts_with("neoforge-") {
+            Some(Self::NeoForge)
+        } else if id.starts_with("fabric-") {
+            Some(Self::Fabric)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_pandora(self) -> Loader {
+        match self {
+            CurseforgeModLoaderType::Forge => Loader::Forge,
+            CurseforgeModLoaderType::Cauldron => Loader::Unknown,
+            CurseforgeModLoaderType::LiteLoader => Loader::Unknown,
+            CurseforgeModLoaderType::Fabric => Loader::Fabric,
+            CurseforgeModLoaderType::Quilt => Loader::Unknown,
+            CurseforgeModLoaderType::NeoForge => Loader::NeoForge,
+            CurseforgeModLoaderType::Any => Loader::Unknown,
+        }
+    }
 }
 
 #[derive(Default, Debug, Copy, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, EnumIter)]
@@ -296,15 +320,7 @@ impl CurseforgeModpackMinecraft {
             .find(|loader| loader.primary)
             .or_else(|| self.mod_loaders.first())
             .and_then(|loader| {
-                if loader.id.starts_with("forge-") {
-                    Some(Loader::Forge)
-                } else if loader.id.starts_with("neoforge-") {
-                    Some(Loader::NeoForge)
-                } else if loader.id.starts_with("fabric-") {
-                    Some(Loader::Fabric)
-                } else {
-                    None
-                }
+                CurseforgeModLoaderType::from_id(&loader.id).map(CurseforgeModLoaderType::as_pandora)
             })
     }
 }
