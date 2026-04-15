@@ -91,6 +91,7 @@ impl Launcher {
         quick_play: Option<QuickPlayLaunch>,
         login_info: MinecraftLoginInfo,
         add_mods: Vec<PathBuf>,
+        read_game_output: bool,
         launch_tracker: &ProgressTracker,
         modal_action: &ModalAction,
     ) -> Result<PandoraChild, LaunchError> {
@@ -242,7 +243,7 @@ impl Launcher {
         }
 
         log::info!("Launching game process");
-        let child = launch_context.launch(&version_info).await?;
+        let child = launch_context.launch(&version_info, read_game_output).await?;
 
         launch_tracker.add_count(1);
 
@@ -2110,7 +2111,7 @@ pub struct LaunchContext {
 }
 
 impl LaunchContext {
-    pub async fn launch(mut self, version_info: &MinecraftVersion) -> std::io::Result<PandoraChild> {
+    pub async fn launch(mut self, version_info: &MinecraftVersion, read_game_output: bool) -> std::io::Result<PandoraChild> {
         let mut wrapping_command: Vec<Cow<'static, OsStr>> = Vec::new();
 
         #[cfg(target_os = "linux")]
@@ -2198,8 +2199,13 @@ impl LaunchContext {
 
         command.current_dir(&self.game_dir);
         command.stdin(command::PandoraStdioWriteMode::Pipe);
-        command.stdout(command::PandoraStdioReadMode::Pipe);
-        command.stderr(command::PandoraStdioReadMode::Pipe);
+        if read_game_output {
+            command.stdout(command::PandoraStdioReadMode::Pipe);
+            command.stderr(command::PandoraStdioReadMode::Pipe);
+        } else {
+            command.stdout(command::PandoraStdioReadMode::Null);
+            command.stderr(command::PandoraStdioReadMode::Null);
+        }
 
         #[cfg(windows)]
         command.force_feedback(true);

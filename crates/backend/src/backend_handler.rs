@@ -1955,9 +1955,11 @@ impl BackendState {
             return;
         }
 
+        let game_output = !self.config.write().get().dont_open_game_output_when_launching;
+
         let launch_tracker = ProgressTracker::new(Arc::from("Launching"), self.send.clone());
         modal_action.trackers.push(launch_tracker.clone());
-        let result = self.launcher.launch(&self.redirecting_http_client, dot_minecraft, configuration, quick_play, login_info, add_mods, &launch_tracker, &modal_action).await;
+        let result = self.launcher.launch(&self.redirecting_http_client, dot_minecraft, configuration, quick_play, login_info, add_mods, game_output, &launch_tracker, &modal_action).await;
 
         if matches!(result, Err(LaunchError::CancelledByUser)) {
             self.send.send(MessageToFrontend::CloseModal);
@@ -1967,7 +1969,7 @@ impl BackendState {
         let is_err = result.is_err();
         match result {
             Ok(mut child) => {
-                if !self.config.write().get().dont_open_game_output_when_launching {
+                if game_output {
                     if let Some(stdout) = child.stdout.take() {
                         log_reader::start_game_output(stdout, child.stderr.take(), self.send.clone());
                     }
